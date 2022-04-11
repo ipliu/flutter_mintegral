@@ -148,6 +148,16 @@ class AdInstanceManager {
         invokeOnAdEvent(arguments);
     }
 
+    void onAdDismissedFullScreenContent(
+            int adId, @NonNull FlutterAd.FlutterMBridgeIds ids, int type) {
+        final Map<Object, Object> arguments = new HashMap<>();
+        arguments.put("adId", adId);
+        arguments.put("eventName", "onAdDismissedFullScreenContent");
+        arguments.put("mBridgeIds", ids);
+        arguments.put("type", type);
+        invokeOnAdEvent(arguments);
+    }
+
     boolean showAdWithId(int id) {
         final FlutterAd.FlutterOverlayAd ad = (FlutterAd.FlutterOverlayAd) adForId(id);
 

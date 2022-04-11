@@ -3,6 +3,8 @@ import 'package:flutter/foundation.dart';
 import 'ad_instance_manager.dart';
 import 'ad_listeners.dart';
 
+enum DismissType {invalid, skipped, completed, leaveApp}
+
 /// Contains information about the loaded ad.
 ///
 /// For debugging and logging purposes.
@@ -51,14 +53,50 @@ abstract class AdWithoutView extends Ad {
       : super(placementId: placementId, unitId: unitId);
 }
 
+/// A full-screen app open ad for the Mintegral Plugin.
+class SplashAd extends AdWithoutView {
+
+  SplashAd._({
+    required String placementId,
+    required String unitId,
+    required this.adLoadCallback,
+  })  : super(placementId: placementId, unitId: unitId);
+
+  /// Listener for ad load events.
+  final SplashAdLoadCallback adLoadCallback;
+
+  /// Callbacks to be invoked when ads show and dismiss full screen content.
+  SplashContentCallback<SplashAd>? splashContentCallback;
+
+  static Future<void> load({
+    required String placementId,
+    required String unitId,
+    required SplashAdLoadCallback adLoadCallback,
+  }) async {
+    SplashAd splashAd = SplashAd._(
+      placementId: placementId,
+      unitId: unitId,
+      adLoadCallback: adLoadCallback,
+    );
+
+    await instanceManager.loadSplashAd(splashAd);
+  }
+
+  /// Display this on top of the application.
+  ///
+  /// Set [splashContentCallback] before calling this method to be
+  /// notified of events that occur when showing the ad.
+  Future<void> show() {
+    return instanceManager.showAdWithoutView(this);
+  }
+}
+
 /// An [Ad] where a user has the option of interacting with in exchange for in-app rewards.
 ///
 /// Because the video assets are so large, it's a good idea to start loading an
 /// ad well in advance of when it's likely to be needed.
 class RewardVideoAd extends AdWithoutView {
-  /// Creates a [RewardVideoAd] with an [AdRequest].
-  ///
-  /// A valid [adUnitId], nonnull [listener], and nonnull request is required.
+
   RewardVideoAd._({
     required String placementId,
     required String unitId,

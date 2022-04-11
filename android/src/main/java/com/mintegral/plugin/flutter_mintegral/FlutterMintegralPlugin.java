@@ -124,18 +124,26 @@ public class FlutterMintegralPlugin implements FlutterPlugin, MethodCallHandler,
         Map <String, String> map = sdk.getMBConfigurationMap(appId, appKey);
         sdk.init(map, context, new FlutterInitializationListener(result));
         break;
+      case "loadSplashAd":
+        final FlutterSplashAd splashAd = new FlutterSplashAd(
+                requireNonNull(call.<Integer>argument("adId")),
+                requireNonNull(instanceManager),
+                requireNonNull(call.argument("placementId")),
+                requireNonNull(call.argument("unitId"))
+        );
+        instanceManager.trackAd(splashAd, requireNonNull(call.<Integer>argument("adId")));
+        splashAd.load();
+        result.success(null);
+        break;
       case "loadRewardVideoAd":
-        final int adId = requireNonNull(call.<Integer>argument("adId"));
-        final String placementId = requireNonNull(call.argument("placementId"));
-        final String unitId = requireNonNull(call.argument("unitId"));
         final boolean isRewardPlus = requireBoolean(call.argument("isRewardPlus"));
         final FlutterRewardVideoAd rewardVideoAd = new FlutterRewardVideoAd(
-                adId,
+                requireNonNull(call.<Integer>argument("adId")),
                 requireNonNull(instanceManager),
-                placementId,
-                unitId
+                requireNonNull(call.argument("placementId")),
+                requireNonNull(call.argument("unitId"))
         );
-        instanceManager.trackAd(rewardVideoAd, adId);
+        instanceManager.trackAd(rewardVideoAd, requireNonNull(call.<Integer>argument("adId")));
         rewardVideoAd.setRewardPlus(isRewardPlus);
         rewardVideoAd.load();
         result.success(null);

@@ -98,7 +98,9 @@ class AdInstanceManager {
 
   void _invokeOnAdLoaded(
       Ad ad, String eventName, Map<dynamic, dynamic> arguments) {
-    if (ad is RewardVideoAd) {
+    if (ad is SplashAd) {
+      ad.adLoadCallback.onAdLoaded.call(ad);
+    } else if (ad is RewardVideoAd) {
       ad.rewardedAdLoadCallback.onAdLoaded.call(ad);
     } else {
       debugPrint('invalid ad: $ad, for event name: $eventName');
@@ -107,7 +109,10 @@ class AdInstanceManager {
 
   void _invokeOnAdFailedToLoad(
       Ad ad, String eventName, Map<dynamic, dynamic> arguments) {
-    if (ad is RewardVideoAd) {
+    if (ad is SplashAd) {
+      ad.dispose();
+      ad.adLoadCallback.onAdFailedToLoad.call(arguments['loadAdError']);
+    } else if (ad is RewardVideoAd) {
       ad.dispose();
       ad.rewardedAdLoadCallback.onAdFailedToLoad.call(arguments['loadAdError']);
     } else {
@@ -116,7 +121,9 @@ class AdInstanceManager {
   }
 
   void _invokeOnAdShowedFullScreenContent(Ad ad, String eventName) {
-    if (ad is RewardVideoAd) {
+    if (ad is SplashAd) {
+      ad.splashContentCallback?.onAdShowedFullScreenContent?.call(ad);
+    } else if (ad is RewardVideoAd) {
       ad.fullScreenContentCallback?.onAdShowedFullScreenContent?.call(ad);
     } else {
       debugPrint('invalid ad: $ad, for event name: $eventName');
@@ -125,7 +132,21 @@ class AdInstanceManager {
 
   void _invokeOnAdDismissedFullScreenContent(
       Ad ad, String eventName, Map<dynamic, dynamic> arguments) {
-    if (ad is RewardVideoAd) {
+    if (ad is SplashAd) {
+      DismissType type = DismissType.invalid;
+      switch (arguments['type']) {
+        case 1:
+          type = DismissType.skipped;
+          break;
+        case 2:
+          type = DismissType.completed;
+          break;
+        case 3:
+          type = DismissType.leaveApp;
+          break;
+      }
+      ad.splashContentCallback?.onAdDismissedFullScreenContent?.call(ad, type);
+    } else if (ad is RewardVideoAd) {
       ad.fullScreenContentCallback?.onAdDismissedFullScreenContent?.call(
           ad, arguments['rewardInfo']);
     } else {
@@ -135,7 +156,10 @@ class AdInstanceManager {
 
   void _invokeOnAdFailedToShowFullScreenContent(
       Ad ad, String eventName, Map<dynamic, dynamic> arguments) {
-    if (ad is RewardVideoAd) {
+    if (ad is SplashAd) {
+      ad.splashContentCallback?.onAdFailedToShowFullScreenContent
+          ?.call(ad, arguments['error']);
+    } else if (ad is RewardVideoAd) {
       ad.fullScreenContentCallback?.onAdFailedToShowFullScreenContent
           ?.call(ad, arguments['error']);
     } else {
@@ -144,7 +168,9 @@ class AdInstanceManager {
   }
 
   void _invokeOnAdClicked(Ad ad, String eventName) {
-    if (ad is RewardVideoAd) {
+    if (ad is SplashAd) {
+      ad.splashContentCallback?.onAdClicked?.call(ad);
+    } else if (ad is RewardVideoAd) {
       ad.fullScreenContentCallback?.onAdClicked?.call(ad);
     } else {
       debugPrint('invalid ad: $ad, for event name: $eventName');
@@ -181,6 +207,24 @@ class AdInstanceManager {
 
   /// Returns null if an invalid [Ad] was passed in.
   int? adIdFor(Ad ad) => _loadedAds.inverse[ad];
+
+  /// Load an splash ad.
+  Future<void> loadSplashAd(SplashAd ad) {
+    if (adIdFor(ad) != null) {
+      return Future<void>.value();
+    }
+
+    final int adId = _nextAdId++;
+    _loadedAds[adId] = ad;
+    return channel.invokeMethod<void>(
+      'loadSplashAd',
+      <dynamic, dynamic>{
+        'adId': adId,
+        'placementId': ad.placementId,
+        'unitId': ad.unitId,
+      },
+    );
+  }
 
   /// Starts loading the ad if not previously loaded.
   ///

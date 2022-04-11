@@ -19,6 +19,7 @@ class _MyAppState extends State<MyApp> {
   final String appKey = '7c22942b749fe6a6e361b675e96b3ee9';
 
   bool sdkInit = false;
+  SplashAd? _splashAd;
   RewardVideoAd? _rewardVideoAd;
 
   @override
@@ -40,6 +41,50 @@ class _MyAppState extends State<MyApp> {
         debugPrint('[Mintegral] Initialization Failed: $error');
       },
     );
+  }
+
+  void loadSplashAd() {
+    SplashAd.load(
+      placementId: '328916',
+      unitId: '1542060',
+      adLoadCallback: SplashAdLoadCallback(
+        onAdLoaded: (SplashAd ad) {
+          debugPrint('[Mintegral] SplashAd loaded.');
+          setState(() {
+            _splashAd = ad;
+          });
+        },
+        onAdFailedToLoad: (String error) {
+          debugPrint('[Mintegral] SplashAd load failed. $error');
+        },
+      ),
+    );
+  }
+
+  void showSplashAd() {
+    _splashAd?.splashContentCallback = SplashContentCallback(
+      onAdShowedFullScreenContent: (SplashAd ad) {
+        debugPrint('[Mintegral] SplashAd onAdShowedFullScreenContent.');
+      },
+      onAdDismissedFullScreenContent: (SplashAd ad, DismissType type) {
+        debugPrint('[Mintegral] SplashAd onAdDismissedFullScreenContent. type: $type');
+        ad.dispose();
+        setState(() {
+          _splashAd = null;
+        });
+      },
+      onAdFailedToShowFullScreenContent: (SplashAd ad, String error) {
+        debugPrint('[Mintegral] SplashAd onAdFailedToShowFullScreenContent. $error');
+        ad.dispose();
+        setState(() {
+          _splashAd = null;
+        });
+      },
+      onAdClicked: (SplashAd ad) {
+        debugPrint('[Mintegral] SplashAd onAdClicked.');
+      },
+    );
+    _splashAd?.show();
   }
 
   void loadRewardVideoAd() {
@@ -67,12 +112,14 @@ class _MyAppState extends State<MyApp> {
       },
       onAdDismissedFullScreenContent: (RewardVideoAd ad, RewardInfo rewardInfo) {
         debugPrint('[Mintegral] RewardVideoAd onAdDismissedFullScreenContent. rewardInfo: ${rewardInfo.toString()}');
+        ad.dispose();
         setState(() {
           _rewardVideoAd = null;
         });
       },
       onAdFailedToShowFullScreenContent: (RewardVideoAd ad, String error) {
         debugPrint('[Mintegral] RewardVideoAd onAdFailedToShowFullScreenContent. $error');
+        ad.dispose();
         setState(() {
           _rewardVideoAd = null;
         });
@@ -107,10 +154,18 @@ class _MyAppState extends State<MyApp> {
               onPressed: sdkInit ? null : initSdk,
             ),
             ElevatedButton(
+              child: Text(_splashAd == null
+                  ? 'Load Splash Ad'
+                  : 'Show Splash Ad'),
+              onPressed: !sdkInit ? null
+                  : _splashAd == null ? loadSplashAd : showSplashAd,
+            ),
+            ElevatedButton(
               child: Text(_rewardVideoAd == null
                   ? 'Load Reward Video Ad'
                   : 'Show Reward Video Ad'),
-              onPressed: _rewardVideoAd == null ? loadRewardVideoAd : showRewardVideoAd,
+              onPressed: !sdkInit ? null
+                  : _rewardVideoAd == null ? loadRewardVideoAd : showRewardVideoAd,
             ),
             Center(child: Text('Initialization status: $sdkInit\n')),
           ],
