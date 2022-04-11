@@ -1,7 +1,6 @@
-import 'package:flutter/material.dart';
 import 'dart:async';
 
-import 'package:flutter/services.dart';
+import 'package:flutter/material.dart';
 import 'package:flutter_mintegral/flutter_mintegral.dart';
 
 void main() {
@@ -16,34 +15,79 @@ class MyApp extends StatefulWidget {
 }
 
 class _MyAppState extends State<MyApp> {
-  String _platformVersion = 'Unknown';
+  final String appId = '144002';
+  final String appKey = '7c22942b749fe6a6e361b675e96b3ee9';
+
+  bool sdkInit = false;
+  RewardVideoAd? _rewardVideoAd;
 
   @override
   void initState() {
     super.initState();
-    initPlatformState();
   }
 
-  // Platform messages are asynchronous, so we initialize in an async method.
-  Future<void> initPlatformState() async {
-    String platformVersion;
-    // Platform messages may fail, so we use a try/catch PlatformException.
-    // We also handle the message potentially returning null.
-    try {
-      platformVersion =
-          await FlutterMintegral.platformVersion ?? 'Unknown platform version';
-    } on PlatformException {
-      platformVersion = 'Failed to get platform version.';
-    }
+  Future<void> initSdk() async {
+    Mintegral.instance.initialize(
+      appId: appId,
+      appKey: appKey,
+      onInitSuccess: () {
+        debugPrint('[Mintegral] Initialization Complete.');
+        setState(() {
+          sdkInit = true;
+        });
+      },
+      onInitFail: (error) {
+        debugPrint('[Mintegral] Initialization Failed: $error');
+      },
+    );
+  }
 
-    // If the widget was removed from the tree while the asynchronous platform
-    // message was in flight, we want to discard the reply rather than calling
-    // setState to update our non-existent appearance.
-    if (!mounted) return;
+  void loadRewardVideoAd() {
+    RewardVideoAd.load(
+      placementId: '290651',
+      unitId: '462372',
+      rewardedAdLoadCallback: RewardedAdLoadCallback(
+        onAdLoaded: (RewardVideoAd ad) {
+          debugPrint('[Mintegral] RewardVideoAd loaded.');
+          setState(() {
+            _rewardVideoAd = ad;
+          });
+        },
+        onAdFailedToLoad: (String error) {
+          debugPrint('[Mintegral] RewardVideoAd load failed. $error');
+        },
+      ),
+    );
+  }
 
-    setState(() {
-      _platformVersion = platformVersion;
-    });
+  void showRewardVideoAd() {
+    _rewardVideoAd?.fullScreenContentCallback = FullScreenContentCallback(
+      onAdShowedFullScreenContent: (RewardVideoAd ad) {
+        debugPrint('[Mintegral] RewardVideoAd onAdShowedFullScreenContent.');
+      },
+      onAdDismissedFullScreenContent: (RewardVideoAd ad, RewardInfo rewardInfo) {
+        debugPrint('[Mintegral] RewardVideoAd onAdDismissedFullScreenContent. rewardInfo: ${rewardInfo.toString()}');
+        setState(() {
+          _rewardVideoAd = null;
+        });
+      },
+      onAdFailedToShowFullScreenContent: (RewardVideoAd ad, String error) {
+        debugPrint('[Mintegral] RewardVideoAd onAdFailedToShowFullScreenContent. $error');
+        setState(() {
+          _rewardVideoAd = null;
+        });
+      },
+      onAdClicked: (RewardVideoAd ad) {
+        debugPrint('[Mintegral] RewardVideoAd onAdClicked.');
+      },
+      onAdCompleted: (RewardVideoAd ad) {
+        debugPrint('[Mintegral] RewardVideoAd onAdCompleted.');
+      },
+      onAdEndCardShowed: (RewardVideoAd ad) {
+        debugPrint('[Mintegral] RewardVideoAd onAdEndCardShowed.');
+      },
+    );
+    _rewardVideoAd?.show();
   }
 
   @override
@@ -53,8 +97,23 @@ class _MyAppState extends State<MyApp> {
         appBar: AppBar(
           title: const Text('Plugin example app'),
         ),
-        body: Center(
-          child: Text('Running on: $_platformVersion\n'),
+        body: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            ElevatedButton(
+              child: Text(sdkInit
+                  ? 'Mintegral SDK initialized - $appId'
+                  : 'Init Mintegral SDK - $appId'),
+              onPressed: sdkInit ? null : initSdk,
+            ),
+            ElevatedButton(
+              child: Text(_rewardVideoAd == null
+                  ? 'Load Reward Video Ad'
+                  : 'Show Reward Video Ad'),
+              onPressed: _rewardVideoAd == null ? loadRewardVideoAd : showRewardVideoAd,
+            ),
+            Center(child: Text('Initialization status: $sdkInit\n')),
+          ],
         ),
       ),
     );
