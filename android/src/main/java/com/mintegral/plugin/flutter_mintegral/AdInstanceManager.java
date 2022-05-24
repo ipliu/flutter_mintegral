@@ -7,6 +7,8 @@ import android.os.Looper;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 
+import com.mintegral.plugin.flutter_mintegral.FlutterAd.FlutterMBridgeIds;
+
 import java.util.HashMap;
 import java.util.Map;
 
@@ -75,86 +77,110 @@ class AdInstanceManager {
         ads.clear();
     }
 
-    void onAdLoaded(int adId, @NonNull FlutterAd.FlutterMBridgeIds ids) {
+    void onAdLoaded(int adId, @NonNull FlutterMBridgeIds mBridgeIds) {
         Map<Object, Object> arguments = new HashMap<>();
         arguments.put("adId", adId);
         arguments.put("eventName", "onAdLoaded");
-        arguments.put("mBridgeIds", ids);
+        arguments.put("mBridgeIds", mBridgeIds);
         invokeOnAdEvent(arguments);
     }
 
-    void onAdFailedToLoad(int adId, @NonNull FlutterAd.FlutterMBridgeIds ids, String errorMsg) {
+    void onAdFailedToLoad(int adId, @NonNull FlutterMBridgeIds mBridgeIds, String errorMsg) {
         Map<Object, Object> arguments = new HashMap<>();
         arguments.put("adId", adId);
         arguments.put("eventName", "onAdFailedToLoad");
-        arguments.put("mBridgeIds", ids);
+        arguments.put("mBridgeIds", mBridgeIds);
         arguments.put("loadAdError", errorMsg);
         invokeOnAdEvent(arguments);
     }
 
-    void onAdClicked(int adId, @NonNull FlutterAd.FlutterMBridgeIds ids) {
+    void onAdImpression(int adId, @NonNull FlutterMBridgeIds mBridgeIds) {
+        Map<Object, Object> arguments = new HashMap<>();
+        arguments.put("adId", adId);
+        arguments.put("eventName", "onAdImpression");
+        arguments.put("mBridgeIds", mBridgeIds);
+        invokeOnAdEvent(arguments);
+    }
+
+    void onAdClicked(int adId, @NonNull FlutterMBridgeIds mBridgeIds) {
         Map<Object, Object> arguments = new HashMap<>();
         arguments.put("adId", adId);
         arguments.put("eventName", "onAdClicked");
-        arguments.put("mBridgeIds", ids);
+        arguments.put("mBridgeIds", mBridgeIds);
         invokeOnAdEvent(arguments);
     }
 
-    void onAdCompleted(int adId, @NonNull FlutterAd.FlutterMBridgeIds ids) {
+    void onAdClosed(int adId, @NonNull FlutterMBridgeIds mBridgeIds) {
+        Map<Object, Object> arguments = new HashMap<>();
+        arguments.put("adId", adId);
+        arguments.put("eventName", "onAdClosed");
+        arguments.put("mBridgeIds", mBridgeIds);
+        invokeOnAdEvent(arguments);
+    }
+
+    void onAdCompleted(int adId, @NonNull FlutterMBridgeIds mBridgeIds) {
         final Map<Object, Object> arguments = new HashMap<>();
         arguments.put("adId", adId);
         arguments.put("eventName", "onAdCompleted");
-        arguments.put("mBridgeIds", ids);
+        arguments.put("mBridgeIds", mBridgeIds);
         invokeOnAdEvent(arguments);
     }
 
-    void onAdEndCardShowed(int adId, @NonNull FlutterAd.FlutterMBridgeIds ids) {
+    void onAdEndCardShowed(int adId, @NonNull FlutterMBridgeIds mBridgeIds) {
         final Map<Object, Object> arguments = new HashMap<>();
         arguments.put("adId", adId);
         arguments.put("eventName", "onAdEndCardShowed");
-        arguments.put("mBridgeIds", ids);
+        arguments.put("mBridgeIds", mBridgeIds);
         invokeOnAdEvent(arguments);
     }
 
     void onFailedToShowFullScreenContent(
             int adId,
-            @NonNull FlutterAd.FlutterMBridgeIds ids,
+            @NonNull FlutterMBridgeIds mBridgeIds,
             String errorMsg) {
         final Map<Object, Object> arguments = new HashMap<>();
         arguments.put("adId", adId);
         arguments.put("eventName", "onFailedToShowFullScreenContent");
-        arguments.put("mBridgeIds", ids);
+        arguments.put("mBridgeIds", mBridgeIds);
         arguments.put("error", errorMsg);
         invokeOnAdEvent(arguments);
     }
 
-    void onAdShowedFullScreenContent(int adId, @NonNull FlutterAd.FlutterMBridgeIds ids) {
+    void onAdShowedFullScreenContent(int adId, @NonNull FlutterMBridgeIds mBridgeIds) {
         final Map<Object, Object> arguments = new HashMap<>();
         arguments.put("adId", adId);
         arguments.put("eventName", "onAdShowedFullScreenContent");
-        arguments.put("mBridgeIds", ids);
+        arguments.put("mBridgeIds", mBridgeIds);
         invokeOnAdEvent(arguments);
     }
 
     void onAdDismissedFullScreenContent(
             int adId,
-            @NonNull FlutterAd.FlutterMBridgeIds ids,
+            @NonNull FlutterMBridgeIds mBridgeIds,
             @NonNull FlutterRewardVideoAd.FlutterRewardInfo rewardInfo) {
         final Map<Object, Object> arguments = new HashMap<>();
         arguments.put("adId", adId);
         arguments.put("eventName", "onAdDismissedFullScreenContent");
-        arguments.put("mBridgeIds", ids);
+        arguments.put("mBridgeIds", mBridgeIds);
         arguments.put("rewardInfo", rewardInfo);
         invokeOnAdEvent(arguments);
     }
 
     void onAdDismissedFullScreenContent(
-            int adId, @NonNull FlutterAd.FlutterMBridgeIds ids, int type) {
+            int adId, @NonNull FlutterMBridgeIds mBridgeIds, int type) {
         final Map<Object, Object> arguments = new HashMap<>();
         arguments.put("adId", adId);
         arguments.put("eventName", "onAdDismissedFullScreenContent");
-        arguments.put("mBridgeIds", ids);
+        arguments.put("mBridgeIds", mBridgeIds);
         arguments.put("type", type);
+        invokeOnAdEvent(arguments);
+    }
+
+    void onAdLeftApplication(int adId, @NonNull FlutterMBridgeIds mBridgeIds) {
+        final Map<Object, Object> arguments = new HashMap<>();
+        arguments.put("adId", adId);
+        arguments.put("eventName", "onAdLeftApplication");
+        arguments.put("mBridgeIds", mBridgeIds);
         invokeOnAdEvent(arguments);
     }
 

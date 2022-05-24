@@ -40,6 +40,20 @@ public class FlutterSplashAd extends FlutterAd.FlutterOverlayAd {
     }
 
     @Override
+    void onPause() {
+        if (mbSplashHandler != null) {
+            mbSplashHandler.onPause();
+        }
+    }
+
+    @Override
+    void onResume() {
+        if (mbSplashHandler != null) {
+            mbSplashHandler.onResume();
+        }
+    }
+
+    @Override
     void load() {
         if (mbSplashHandler == null) {
             DelegatingSplashCallback delegate = new DelegatingSplashCallback(this);
@@ -93,7 +107,10 @@ public class FlutterSplashAd extends FlutterAd.FlutterOverlayAd {
             parent.removeView(container);
             container = null;
         }
-        mbSplashHandler = null;
+        if (mbSplashHandler != null) {
+            mbSplashHandler.onDestroy();
+            mbSplashHandler = null;
+        }
     }
 
     public void onLoadSuccessed(MBridgeIds ids) {

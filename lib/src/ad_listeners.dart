@@ -1,7 +1,12 @@
+import 'package:flutter/foundation.dart';
+
 import 'ad_containers.dart';
 
 /// The callback type to handle an event occurring for an [Ad].
 typedef AdEventCallback = void Function(Ad ad);
+
+/// The callback type to handle an error loading an [Ad].
+typedef AdErrorCallback = void Function(Ad ad, String error);
 
 /// Generic callback type for an event occurring on an Ad.
 typedef GenericAdEventCallback<Ad> = void Function(Ad ad);
@@ -14,6 +19,72 @@ typedef RewardedAdDismissedCallback<Ad> = void Function(Ad ad, RewardInfo reward
 
 /// A callback type for when an error occurs loading a full screen ad.
 typedef FullScreenAdLoadErrorCallback = void Function(String error);
+
+/// Shared event callbacks used in Banner ads.
+abstract class AdWithViewListener {
+  /// Default constructor for [AdWithViewListener], meant to be used by subclasses.
+  @protected
+  const AdWithViewListener({
+    this.onAdLoaded,
+    this.onAdFailedToLoad,
+    this.onAdImpression,
+    this.onAdClicked,
+    this.onAdClosed,
+    this.onAdLeftApplication,
+  });
+
+  /// Called when the ad has been successfully loaded.
+  final AdEventCallback? onAdLoaded;
+
+  /// Called when an error occurs while attempting to load an ad.
+  final AdErrorCallback? onAdFailedToLoad;
+
+  /// Called when the ad is first rendered on device.
+  /// Please use this callback to track impressions.
+  final AdEventCallback? onAdImpression;
+
+  /// Called when the user has clicked the ad.
+  final AdEventCallback? onAdClicked;
+
+  /// Called when the ad is closed.
+  final AdEventCallback? onAdClosed;
+
+  /// Called when leaved app after clicked the ad.
+  final AdEventCallback? onAdLeftApplication;
+}
+
+/// A listener for receiving notifications for the lifecycle of a [BannerAd].
+class BannerAdListener extends AdWithViewListener {
+  /// Constructs a [BannerAdListener] that notifies for the provided event callbacks.
+  ///
+  /// Typically you will override [onAdLoaded] and [onAdFailedToLoad]:
+  /// ```dart
+  /// BannerAdListener(
+  ///   onAdLoaded: (ad) {
+  ///     // Ad successfully loaded - display an AdWidget with the banner ad.
+  ///   },
+  ///   onAdFailedToLoad: (ad, error) {
+  ///     // Ad failed to load - log the error and dispose the ad.
+  ///   },
+  ///   ...
+  /// )
+  /// ```
+  const BannerAdListener({
+    AdEventCallback? onAdLoaded,
+    AdErrorCallback? onAdFailedToLoad,
+    AdEventCallback? onAdImpression,
+    AdEventCallback? onAdClicked,
+    AdEventCallback? onAdClosed,
+    AdEventCallback? onAdLeftApplication,
+  }) : super(
+    onAdLoaded: onAdLoaded,
+    onAdFailedToLoad: onAdFailedToLoad,
+    onAdImpression: onAdImpression,
+    onAdClicked: onAdClicked,
+    onAdClosed: onAdClosed,
+    onAdLeftApplication: onAdLeftApplication,
+  );
+}
 
 /// Callback events for for splash ads.
 class SplashContentCallback<Ad> {

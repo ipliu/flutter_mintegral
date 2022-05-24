@@ -5,7 +5,6 @@ import 'package:flutter/services.dart';
 
 import 'ad_containers.dart';
 
-/// Loads and disposes [BannerAds] and [InterstitialAds].
 AdInstanceManager instanceManager = AdInstanceManager('flutter_mintegral');
 
 /// Maintains access to loaded [Ad] instances and handles sending/receiving
@@ -45,6 +44,10 @@ class AdInstanceManager {
     }
   }
 
+  void _onAdEventIOS(Ad ad, String eventName, Map<dynamic, dynamic> arguments) {
+
+  }
+
   void _onAdEventAndroid(
       Ad ad, String eventName, Map<dynamic, dynamic> arguments) {
     switch (eventName) {
@@ -54,22 +57,9 @@ class AdInstanceManager {
       case 'onAdFailedToLoad':
         _invokeOnAdFailedToLoad(ad, eventName, arguments);
         break;
-      // case 'onAdOpened':
-      //   _invokeOnAdOpened(ad, eventName);
-      //   break;
-      // case 'onAdClosed':
-      //   _invokeOnAdClosed(ad, eventName);
-      //   break;
-      // case 'onAppEvent':
-      //   _invokeOnAppEvent(ad, eventName, arguments);
-      //   break;
-      // case 'onRewardedAdUserEarnedReward':
-      // case 'onRewardedInterstitialAdUserEarnedReward':
-      //   _invokeOnUserEarnedReward(ad, eventName, arguments);
-      //   break;
-      // case 'onAdImpression':
-      //   _invokeOnAdImpression(ad, eventName);
-      //   break;
+      case 'onAdImpression':
+        _invokeOnAdImpression(ad, eventName);
+        break;
       case 'onFailedToShowFullScreenContent':
         _invokeOnAdFailedToShowFullScreenContent(ad, eventName, arguments);
         break;
@@ -82,18 +72,21 @@ class AdInstanceManager {
       case 'onAdClicked':
         _invokeOnAdClicked(ad, eventName);
         break;
+      case 'onAdClosed':
+        _invokeOnAdClosed(ad, eventName);
+        break;
       case 'onAdCompleted':
         _invokeOnAdCompleted(ad, eventName);
         break;
       case 'onAdEndCardShowed':
         _invokeOnAdEndCardShowed(ad, eventName);
         break;
+      case 'onAdLeftApplication':
+        _invokeOnAdLeftApplication(ad, eventName);
+        break;
       default:
         debugPrint('invalid ad event name: $eventName');
     }
-  }
-
-  void _onAdEventIOS(Ad ad, String eventName, Map<dynamic, dynamic> arguments) {
   }
 
   void _invokeOnAdLoaded(
@@ -102,6 +95,8 @@ class AdInstanceManager {
       ad.adLoadCallback.onAdLoaded.call(ad);
     } else if (ad is RewardVideoAd) {
       ad.rewardedAdLoadCallback.onAdLoaded.call(ad);
+    } else if (ad is AdWithView) {
+      ad.listener.onAdLoaded?.call(ad);
     } else {
       debugPrint('invalid ad: $ad, for event name: $eventName');
     }
@@ -115,6 +110,16 @@ class AdInstanceManager {
     } else if (ad is RewardVideoAd) {
       ad.dispose();
       ad.rewardedAdLoadCallback.onAdFailedToLoad.call(arguments['loadAdError']);
+    } else if (ad is AdWithView) {
+      ad.listener.onAdFailedToLoad?.call(ad, arguments['loadAdError']);
+    } else {
+      debugPrint('invalid ad: $ad, for event name: $eventName');
+    }
+  }
+
+  void _invokeOnAdImpression(Ad ad, String eventName) {
+    if (ad is AdWithView) {
+      ad.listener.onAdImpression?.call(ad);
     } else {
       debugPrint('invalid ad: $ad, for event name: $eventName');
     }
@@ -172,6 +177,16 @@ class AdInstanceManager {
       ad.splashContentCallback?.onAdClicked?.call(ad);
     } else if (ad is RewardVideoAd) {
       ad.fullScreenContentCallback?.onAdClicked?.call(ad);
+    } else if (ad is AdWithView) {
+      ad.listener.onAdClicked?.call(ad);
+    } else {
+      debugPrint('invalid ad: $ad, for event name: $eventName');
+    }
+  }
+
+  void _invokeOnAdClosed(Ad ad, String eventName) {
+    if (ad is AdWithView) {
+      ad.listener.onAdClosed?.call(ad);
     } else {
       debugPrint('invalid ad: $ad, for event name: $eventName');
     }
@@ -193,6 +208,14 @@ class AdInstanceManager {
     }
   }
 
+  void _invokeOnAdLeftApplication(Ad ad, String eventName) {
+    if (ad is AdWithView) {
+      ad.listener.onAdLeftApplication?.call(ad);
+    } else {
+      debugPrint('invalid ad: $ad, for event name: $eventName');
+    }
+  }
+
   Future<Map<dynamic, dynamic>> initialize({
     required String appId,
     required String appKey,
@@ -202,11 +225,70 @@ class AdInstanceManager {
     ))!;
   }
 
+  Future<void> onPause(Ad ad) async {
+    return (await instanceManager.channel.invokeMethod(
+      'onPause',
+      <dynamic, dynamic>{
+        'adId': adIdFor(ad),
+      },
+    ));
+  }
+
+  Future<void> onResume(Ad ad) async {
+    return (await instanceManager.channel.invokeMethod(
+      'onResume',
+      <dynamic, dynamic>{
+        'adId': adIdFor(ad),
+      },
+    ));
+  }
+
+  Future<AdSize> getAdSize(Ad ad) async {
+    return (await instanceManager.channel.invokeMethod<AdSize>(
+      'getAdSize',
+      <dynamic, dynamic>{
+        'adId': adIdFor(ad),
+      },
+    ))!;
+  }
+
   /// Returns null if an invalid [adId] was passed in.
   Ad? adFor(int adId) => _loadedAds[adId];
 
   /// Returns null if an invalid [Ad] was passed in.
   int? adIdFor(Ad ad) => _loadedAds.inverse[ad];
+
+  final Set<int> _mountedWidgetAdIds = <int>{};
+
+  /// Returns true if the [adId] is already mounted in a [WidgetAd].
+  bool isWidgetAdIdMounted(int adId) => _mountedWidgetAdIds.contains(adId);
+
+  /// Indicates that [adId] is mounted in widget tree.
+  void mountWidgetAdId(int adId) => _mountedWidgetAdIds.add(adId);
+
+  /// Indicates that [adId] is unmounted from the widget tree.
+  void unmountWidgetAdId(int adId) => _mountedWidgetAdIds.remove(adId);
+
+  /// Starts loading the ad if not previously loaded.
+  ///
+  /// Does nothing if we have already tried to load the ad.
+  Future<void> loadBannerAd(BannerAd ad) {
+    if (adIdFor(ad) != null) {
+      return Future<void>.value();
+    }
+
+    final int adId = _nextAdId++;
+    _loadedAds[adId] = ad;
+    return channel.invokeMethod<void>(
+      'loadBannerAd',
+      <dynamic, dynamic>{
+        'adId': adId,
+        'placementId': ad.placementId,
+        'unitId': ad.unitId,
+        'size': ad.size,
+      },
+    );
+  }
 
   /// Load an splash ad.
   Future<void> loadSplashAd(SplashAd ad) {
@@ -285,6 +367,7 @@ class AdMessageCodec extends StandardMessageCodec {
   // The type values below must be consistent for each platform.
   static const int _valueMBridgeIds = 128;
   static const int _valueRewardInfo = 129;
+  static const int _valueAdSize = 130;
 
   @override
   void writeValue(WriteBuffer buffer, dynamic value) {
@@ -299,6 +382,10 @@ class AdMessageCodec extends StandardMessageCodec {
       writeValue(buffer, value.rewardName);
       writeValue(buffer, value.rewardAmount);
       writeValue(buffer, value.rewardAlertStatus);
+    } else if (value is AdSize) {
+      buffer.putUint8(_valueAdSize);
+      writeValue(buffer, value.width);
+      writeValue(buffer, value.height);
     } else {
       super.writeValue(buffer, value);
     }
@@ -318,6 +405,10 @@ class AdMessageCodec extends StandardMessageCodec {
             readValueOfType(buffer.getUint8(), buffer),
             readValueOfType(buffer.getUint8(), buffer),
             readValueOfType(buffer.getUint8(), buffer));
+      case _valueAdSize:
+        return AdSize(
+            width: readValueOfType(buffer.getUint8(), buffer),
+            height: readValueOfType(buffer.getUint8(), buffer));
       default:
         return super.readValueOfType(type, buffer);
     }

@@ -93,6 +93,22 @@ public class FlutterRewardVideoAd extends FlutterAd.FlutterOverlayAd {
         this.isRewardPlus = isRewardPlus;
     }
 
+    /**
+     * empty implementation method,(It can be ignored)
+     */
+    @Override
+    void onPause() {
+
+    }
+
+    /**
+     * empty implementation method,(It can be ignored)
+     */
+    @Override
+    void onResume() {
+
+    }
+
     @Override
     void load() {
         if (manager.getActivity() == null) {

@@ -52,6 +52,10 @@ public class FlutterMintegralPlugin implements FlutterPlugin, MethodCallHandler,
             new StandardMethodCodec(adMessageCodec));
     channel.setMethodCallHandler(this);
     instanceManager = new AdInstanceManager(channel);
+    binding.getPlatformViewRegistry()
+            .registerViewFactory(
+                    "flutter_mintegral/ad_widget",
+                    new MintegralAdsViewFactory(instanceManager));
   }
 
   @Override
@@ -124,6 +128,18 @@ public class FlutterMintegralPlugin implements FlutterPlugin, MethodCallHandler,
         Map <String, String> map = sdk.getMBConfigurationMap(appId, appKey);
         sdk.init(map, context, new FlutterInitializationListener(result));
         break;
+      case "loadBannerAd":
+        final FlutterBannerAd bannerAd =
+                new FlutterBannerAd(
+                        requireNonNull(call.<Integer>argument("adId")),
+                        instanceManager,
+                        requireNonNull(call.argument("placementId")),
+                        requireNonNull(call.argument("unitId")),
+                        requireNonNull(call.argument("size")));
+        instanceManager.trackAd(bannerAd, requireNonNull(call.<Integer>argument("adId")));
+        bannerAd.load();
+        result.success(null);
+        break;
       case "loadSplashAd":
         final FlutterSplashAd splashAd = new FlutterSplashAd(
                 requireNonNull(call.<Integer>argument("adId")),
@@ -161,6 +177,40 @@ public class FlutterMintegralPlugin implements FlutterPlugin, MethodCallHandler,
         }
         result.success(null);
         break;
+      case "onPause": {
+        FlutterAd ad = instanceManager.adForId(
+                requireNonNull(call.<Integer>argument("adId")));
+        if (ad != null) {
+          ad.onPause();
+        }
+        result.success(null);
+        break;
+      }
+      case "onResume": {
+        FlutterAd ad = instanceManager.adForId(
+                requireNonNull(call.<Integer>argument("adId")));
+        if (ad != null) {
+          ad.onResume();
+        }
+        result.success(null);
+        break;
+      }
+      case "getAdSize": {
+        FlutterAd ad = instanceManager.adForId(
+                requireNonNull(call.<Integer>argument("adId")));
+        if (ad == null) {
+          // This was called on a dart ad container that hasn't been loaded yet.
+          result.success(null);
+        } else if (ad instanceof FlutterBannerAd) {
+          result.success(((FlutterBannerAd) ad).getAdSize());
+        } else {
+          result.error(
+                  "unexpected_ad_type",
+                  "Unexpected ad type for getAdSize: " + ad,
+                  null);
+        }
+        break;
+      }
       case "getPlatformVersion":
         result.success("Android " + android.os.Build.VERSION.RELEASE);
         break;

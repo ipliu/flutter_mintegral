@@ -82,6 +82,10 @@ abstract class FlutterAd {
         }
     }
 
+    abstract void onPause();
+
+    abstract void onResume();
+
     abstract void load();
 
     /**

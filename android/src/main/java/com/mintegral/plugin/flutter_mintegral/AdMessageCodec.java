@@ -19,6 +19,7 @@ public class AdMessageCodec extends StandardMessageCodec {
     // The type values below must be consistent for each platform.
     private static final byte VALUE_MBRIDGE_IDS = (byte) 128;
     private static final byte VALUE_REWARD_INFO = (byte) 129;
+    private static final byte VALUE_AD_SIZE = (byte) 130;
 
     @NonNull Context context;
 
@@ -45,6 +46,11 @@ public class AdMessageCodec extends StandardMessageCodec {
             writeValue(stream, info.rewardName);
             writeValue(stream, info.rewardAmount);
             writeValue(stream, info.rewardAlertStatus);
+        } else if (value instanceof FlutterAdSize) {
+            stream.write(VALUE_AD_SIZE);
+            final FlutterAdSize size = (FlutterAdSize) value;
+            writeValue(stream, size.width);
+            writeValue(stream, size.height);
         } else {
             super.writeValue(stream, value);
         }
@@ -64,6 +70,11 @@ public class AdMessageCodec extends StandardMessageCodec {
                         (Boolean) readValueOfType(buffer.get(), buffer),
                         (String) readValueOfType(buffer.get(), buffer),
                         (String) readValueOfType(buffer.get(), buffer),
+                        (Integer) readValueOfType(buffer.get(), buffer)
+                );
+            case VALUE_AD_SIZE:
+                return new FlutterAdSize(
+                        (Integer) readValueOfType(buffer.get(), buffer),
                         (Integer) readValueOfType(buffer.get(), buffer)
                 );
             default:

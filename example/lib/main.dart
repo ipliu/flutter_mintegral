@@ -21,6 +21,7 @@ class _MyAppState extends State<MyApp> {
   bool sdkInit = false;
   SplashAd? _splashAd;
   RewardVideoAd? _rewardVideoAd;
+  BannerAd? _bannerAd;
 
   @override
   void initState() {
@@ -137,8 +138,59 @@ class _MyAppState extends State<MyApp> {
     _rewardVideoAd?.show();
   }
 
+  void loadBannerAd() {
+    BannerAd(
+      size: AdSize.standard,
+      placementId: '290655',
+      unitId: '462376',
+      listener: BannerAdListener(
+        onAdLoaded: (ad) {
+          debugPrint('[Mintegral] BannerAd onAdLoaded.');
+          setState(() {
+            _bannerAd = ad as BannerAd;
+          });
+        },
+        onAdFailedToLoad: (ad, error) {
+          debugPrint('[Mintegral] BannerAd onAdFailedToLoad. error: $error');
+          ad.dispose();
+          setState(() {
+            _bannerAd = null;
+          });
+        },
+        onAdImpression: (ad) {
+          debugPrint('[Mintegral] BannerAd onAdImpression.');
+        },
+        onAdClicked: (ad) {
+          debugPrint('[Mintegral] BannerAd onAdClicked.');
+        },
+        onAdClosed: (ad) {
+          debugPrint('[Mintegral] BannerAd onAdClosed.');
+          ad.dispose();
+          setState(() {
+            _bannerAd = null;
+          });
+        },
+        onAdLeftApplication: (ad) {
+          debugPrint('[Mintegral] BannerAd onAdLeftApplication.');
+        },
+      ),
+    ).load();
+  }
+
+  Widget showBannerAd(BannerAd bannerAd) {
+    return AdWidget(ad: bannerAd);
+  }
+
+  void disposeBannerAd() {
+    if (_bannerAd != null) {
+      _bannerAd?.dispose();
+      _bannerAd = null;
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
+    BannerAd? bannerAd = _bannerAd;
     return MaterialApp(
       home: Scaffold(
         appBar: AppBar(
@@ -167,7 +219,20 @@ class _MyAppState extends State<MyApp> {
               onPressed: !sdkInit ? null
                   : _rewardVideoAd == null ? loadRewardVideoAd : showRewardVideoAd,
             ),
+            ElevatedButton(
+              child: Text(bannerAd == null
+                  ? 'Load Banner Ad'
+                  : 'Dispose Banner Ad'),
+              onPressed: !sdkInit ? null
+                  : bannerAd == null ? loadBannerAd : disposeBannerAd,
+            ),
             Center(child: Text('Initialization status: $sdkInit\n')),
+            if (bannerAd != null) ...[
+              Padding(
+                padding: const EdgeInsets.only(top: 20),
+                child: showBannerAd(bannerAd),
+              ),
+            ],
           ],
         ),
       ),
