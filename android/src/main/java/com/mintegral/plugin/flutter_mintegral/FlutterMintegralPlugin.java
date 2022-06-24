@@ -151,6 +151,17 @@ public class FlutterMintegralPlugin implements FlutterPlugin, MethodCallHandler,
         splashAd.load();
         result.success(null);
         break;
+      case "loadInterstitialAd":
+        final FlutterInterstitialAd interstitial = new FlutterInterstitialAd(
+                requireNonNull(call.<Integer>argument("adId")),
+                requireNonNull(instanceManager),
+                requireNonNull(call.argument("placementId")),
+                requireNonNull(call.argument("unitId"))
+        );
+        instanceManager.trackAd(interstitial, requireNonNull(call.<Integer>argument("adId")));
+        interstitial.load();
+        result.success(null);
+        break;
       case "loadRewardVideoAd":
         final boolean isRewardPlus = requireBoolean(call.argument("isRewardPlus"));
         final FlutterRewardVideoAd rewardVideoAd = new FlutterRewardVideoAd(

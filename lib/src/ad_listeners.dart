@@ -170,6 +170,15 @@ class RewardedAdLoadCallback extends FullScreenAdLoadCallback<RewardVideoAd> {
   }) : super(onAdLoaded: onAdLoaded, onAdFailedToLoad: onAdFailedToLoad);
 }
 
+/// This class holds callbacks for loading a [InterstitialAd].
+class InterstitialAdLoadCallback extends FullScreenAdLoadCallback<InterstitialAd> {
+  /// Construct a [InterstitialAdLoadCallback].
+  const InterstitialAdLoadCallback({
+    required GenericAdEventCallback<InterstitialAd> onAdLoaded,
+    required FullScreenAdLoadErrorCallback onAdFailedToLoad,
+  }) : super(onAdLoaded: onAdLoaded, onAdFailedToLoad: onAdFailedToLoad);
+}
+
 /// This class holds callbacks for loading an [SplashAd].
 class SplashAdLoadCallback extends FullScreenAdLoadCallback<SplashAd> {
   /// Construct an [SplashAdLoadCallback].

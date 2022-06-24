@@ -95,6 +95,8 @@ class AdInstanceManager {
       ad.adLoadCallback.onAdLoaded.call(ad);
     } else if (ad is RewardVideoAd) {
       ad.rewardedAdLoadCallback.onAdLoaded.call(ad);
+    } else if (ad is InterstitialAd) {
+      ad.adLoadCallback.onAdLoaded.call(ad);
     } else if (ad is AdWithView) {
       ad.listener.onAdLoaded?.call(ad);
     } else {
@@ -110,6 +112,9 @@ class AdInstanceManager {
     } else if (ad is RewardVideoAd) {
       ad.dispose();
       ad.rewardedAdLoadCallback.onAdFailedToLoad.call(arguments['loadAdError']);
+    } else if (ad is InterstitialAd) {
+      ad.dispose();
+      ad.adLoadCallback.onAdFailedToLoad.call(arguments['loadAdError']);
     } else if (ad is AdWithView) {
       ad.listener.onAdFailedToLoad?.call(ad, arguments['loadAdError']);
     } else {
@@ -129,6 +134,8 @@ class AdInstanceManager {
     if (ad is SplashAd) {
       ad.splashContentCallback?.onAdShowedFullScreenContent?.call(ad);
     } else if (ad is RewardVideoAd) {
+      ad.fullScreenContentCallback?.onAdShowedFullScreenContent?.call(ad);
+    } else if (ad is InterstitialAd) {
       ad.fullScreenContentCallback?.onAdShowedFullScreenContent?.call(ad);
     } else {
       debugPrint('invalid ad: $ad, for event name: $eventName');
@@ -154,6 +161,9 @@ class AdInstanceManager {
     } else if (ad is RewardVideoAd) {
       ad.fullScreenContentCallback?.onAdDismissedFullScreenContent?.call(
           ad, arguments['rewardInfo']);
+    } else if (ad is InterstitialAd) {
+      ad.fullScreenContentCallback?.onAdDismissedFullScreenContent?.call(
+          ad, arguments['rewardInfo']);
     } else {
       debugPrint('invalid ad: $ad, for event name: $eventName');
     }
@@ -167,6 +177,9 @@ class AdInstanceManager {
     } else if (ad is RewardVideoAd) {
       ad.fullScreenContentCallback?.onAdFailedToShowFullScreenContent
           ?.call(ad, arguments['error']);
+    } else if (ad is InterstitialAd) {
+      ad.fullScreenContentCallback?.onAdFailedToShowFullScreenContent
+          ?.call(ad, arguments['error']);
     } else {
       debugPrint('invalid ad: $ad, for event name: $eventName');
     }
@@ -176,6 +189,8 @@ class AdInstanceManager {
     if (ad is SplashAd) {
       ad.splashContentCallback?.onAdClicked?.call(ad);
     } else if (ad is RewardVideoAd) {
+      ad.fullScreenContentCallback?.onAdClicked?.call(ad);
+    } else if (ad is InterstitialAd) {
       ad.fullScreenContentCallback?.onAdClicked?.call(ad);
     } else if (ad is AdWithView) {
       ad.listener.onAdClicked?.call(ad);
@@ -195,6 +210,8 @@ class AdInstanceManager {
   void _invokeOnAdCompleted(Ad ad, String eventName) {
     if (ad is RewardVideoAd) {
       ad.fullScreenContentCallback?.onAdCompleted?.call(ad);
+    } else if (ad is InterstitialAd) {
+      ad.fullScreenContentCallback?.onAdCompleted?.call(ad);
     } else {
       debugPrint('invalid ad: $ad, for event name: $eventName');
     }
@@ -202,6 +219,8 @@ class AdInstanceManager {
 
   void _invokeOnAdEndCardShowed(Ad ad, String eventName) {
     if (ad is RewardVideoAd) {
+      ad.fullScreenContentCallback?.onAdEndCardShowed?.call(ad);
+    } else if (ad is InterstitialAd) {
       ad.fullScreenContentCallback?.onAdEndCardShowed?.call(ad);
     } else {
       debugPrint('invalid ad: $ad, for event name: $eventName');
@@ -325,6 +344,26 @@ class AdInstanceManager {
         'placementId': ad.placementId,
         'unitId': ad.unitId,
         'isRewardPlus': ad.isRewardPlus,
+      },
+    );
+  }
+
+  /// Starts loading the ad if not previously loaded.
+  ///
+  /// Loading also terminates if ad is already in the process of loading.
+  Future<void> loadInterstitialAd(InterstitialAd ad) {
+    if (adIdFor(ad) != null) {
+      return Future<void>.value();
+    }
+
+    final int adId = _nextAdId++;
+    _loadedAds[adId] = ad;
+    return channel.invokeMethod<void>(
+      'loadInterstitialAd',
+      <dynamic, dynamic>{
+        'adId': adId,
+        'placementId': ad.placementId,
+        'unitId': ad.unitId,
       },
     );
   }

@@ -285,6 +285,48 @@ class SplashAd extends AdWithoutView {
   }
 }
 
+/// A full-screen interstitial ad for the Mintegral Plugin.
+class InterstitialAd extends AdWithoutView {
+  /// Creates an [InterstitialAd].
+  ///
+  /// A valid [placementId] and [unitId] from the Mintegral dashboard,
+  /// and a nonnull [adLoadCallback] is required.
+  InterstitialAd._({
+    required String placementId,
+    required String unitId,
+    required this.adLoadCallback,
+  }) : super(placementId: placementId, unitId: unitId);
+
+  /// Callback to be invoked when the ad finishes loading.
+  final InterstitialAdLoadCallback adLoadCallback;
+
+  /// Callbacks to be invoked when ads show and dismiss full screen content.
+  FullScreenContentCallback<InterstitialAd>? fullScreenContentCallback;
+
+  /// Loads an [InterstitialAd] with the given [placementId] and [unitId].
+  static Future<void> load({
+    required String placementId,
+    required String unitId,
+    required InterstitialAdLoadCallback adLoadCallback,
+  }) async {
+    InterstitialAd ad = InterstitialAd._(
+      placementId: placementId,
+      unitId: unitId,
+      adLoadCallback: adLoadCallback,
+    );
+
+    await instanceManager.loadInterstitialAd(ad);
+  }
+
+  /// Displays this on top of the application.
+  ///
+  /// Set [fullScreenContentCallback] before calling this method to be
+  /// notified of events that occur when showing the ad.
+  Future<void> show() {
+    return instanceManager.showAdWithoutView(this);
+  }
+}
+
 /// An [Ad] where a user has the option of interacting with in exchange for in-app rewards.
 ///
 /// Because the video assets are so large, it's a good idea to start loading an
