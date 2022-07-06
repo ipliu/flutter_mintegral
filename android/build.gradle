@@ -12,7 +12,7 @@ buildscript {
     }
 
     dependencies {
-        classpath 'com.android.tools.build:gradle:4.1.0'
+        classpath 'com.android.tools.build:gradle:4.1.3'
     }
 }
 
@@ -44,14 +44,16 @@ android {
 }
 
 dependencies {
+    // Mintegral SDK 16.1.71 混淆配置依賴
+    implementation "androidx.appcompat:appcompat:1.4.2"
     // 集成海外SDK务必项目中引入RecyclerView
     implementation "androidx.recyclerview:recyclerview:1.2.1"
 
     // Mintegral SDK
-    implementation 'com.mbridge.msdk.oversea:reward:16.1.11'
-    implementation 'com.mbridge.msdk.oversea:mbnative:16.1.11'
-    implementation 'com.mbridge.msdk.oversea:mbnativeadvanced:16.1.11'
-    implementation 'com.mbridge.msdk.oversea:newinterstitial:16.1.11'
-    implementation 'com.mbridge.msdk.oversea:mbbanner:16.1.11'
-    implementation 'com.mbridge.msdk.oversea:mbsplash:16.1.11'
+    implementation 'com.mbridge.msdk.oversea:reward:16.1.71'
+    implementation 'com.mbridge.msdk.oversea:mbnative:16.1.71'
+    implementation 'com.mbridge.msdk.oversea:mbnativeadvanced:16.1.71'
+    implementation 'com.mbridge.msdk.oversea:newinterstitial:16.1.71'
+    implementation 'com.mbridge.msdk.oversea:mbbanner:16.1.71'
+    implementation 'com.mbridge.msdk.oversea:mbsplash:16.1.71'
 }
